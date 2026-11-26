@@ -1,0 +1,73 @@
+# Todo el proyecto con un comando:
+#   docker compose up -d --build
+# Web: http://localhost:8501   ·   Parar: docker compose down   ·   Logs: docker compose logs -f worker
+#
+# Los puertos se pueden cambiar en .env si ya están ocupados en vuestro ordenador
+# (por ejemplo, porque tenéis MongoDB o MySQL instalados).
+
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "127.0.0.1:${DOCKER_PUERTO_MONGO:-27017}:27017"
+    volumes:
+      - datos_mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    ports:
+      - "127.0.0.1:${DOCKER_PUERTO_MYSQL:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: albion_tracker
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - datos_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      retries: 30
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-m", "tracker.worker"]
+    env_file: .env
+    environment:
+      # Dentro de Docker, las bases de datos se llaman por el nombre del servicio
+      MONGO_URI: mongodb://mongo:27017
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: .
+    command: ["streamlit", "run", "app.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+    ports:
+      - "127.0.0.1:${DOCKER_PUERTO_WEB:-8501}:8501"
+    env_file: .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  datos_mongo:
+  datos_mysql:

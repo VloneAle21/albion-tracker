@@ -1,0 +1,9 @@
+# Lo que NO se copia dentro de la imagen
+.venv/
+.env
+.mariadb/
+.pytest_cache/
+__pycache__/
+**/__pycache__/
+tests/
+sql/crear_usuario.sql
