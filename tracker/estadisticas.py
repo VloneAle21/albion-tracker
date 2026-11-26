@@ -112,7 +112,7 @@ def preparar(df, zona_horaria=ZONA_HORARIA):
     # Las fechas se guardan en UTC; para "a qué hora juega" hay que pasarlas a hora local.
     df["fecha_local"] = pd.to_datetime(df["fecha"]).dt.tz_localize("UTC").dt.tz_convert(zona_horaria)
     df["hora"] = df["fecha_local"].dt.hour
-    df["dia"] = df["fecha_local"].dt.dayofweek  # 0 = lunes
+    df["dia"] = df["fecha_local"].dt.day_of_week  # 0 = lunes
 
     df["arma_base"] = df["arma"].apply(arma_base)
     return df
