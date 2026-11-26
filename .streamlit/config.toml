@@ -1,0 +1,12 @@
+# Configuración de la web (Streamlit)
+
+[theme]
+base = "light"
+primaryColor = "#2a78d6"
+
+[server]
+headless = true
+
+[browser]
+# No mandar estadísticas de uso a Streamlit
+gatherUsageStats = false
