@@ -1,0 +1,8 @@
+requests==2.32.*
+pymongo==4.*
+python-dotenv==1.*
+PyMySQL==1.*
+cryptography   # PyMySQL la necesita para el login de MySQL 8
+pandas>=2.2
+streamlit>=1.40
+plotly>=5.24
